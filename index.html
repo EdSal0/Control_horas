@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="IMG/icon.ico">
-    <title>Registro de Horas</title>
-
+    <title>Registro de Horas - Dark Mode</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,11 +17,10 @@
             background-color: #111;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.05);
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
         }
-        h1, h3, h4 {
+        h1, h3 {
             text-align: center;
-            color: #fff;
         }
         .form-group {
             margin-bottom: 15px;
@@ -43,7 +40,7 @@
             color: #fff;
         }
         button {
-            background-color: #6a0dad;
+            background-color: #800080;
             color: white;
             border: none;
             cursor: pointer;
@@ -51,19 +48,12 @@
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #8a2be2;
-        }
-        .summary-box {
-            background-color: #222;
-            border: 1px solid #444;
-            border-radius: 4px;
-            padding: 15px;
-            margin-top: 20px;
+            background-color: #a020f0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 20px;
         }
         table, th, td {
             border: 1px solid #555;
@@ -72,16 +62,12 @@
             padding: 8px;
             text-align: center;
         }
-        th {
-            background-color: #333;
-        }
     </style>
-</head>
 </head>
 <body>
     <div class="container">
         <h1>Registro de Horas</h1>
-        
+
         <div class="form-group">
             <label for="seleccionarPersona">Selecciona un destinatario:</label>
             <select id="seleccionarPersona">
@@ -111,63 +97,51 @@
         </div>
 
         <button onclick="registrarHoras()">Guardar Registro</button>
+        <button onclick="limpiarDatos()">Limpiar Datos</button>
 
-        <div class="summary-box">
-            <h3>Resumen</h3>
-            <div id="resumenEdu">
-                <strong>Edu:</strong>
-                <p>Total de horas: <span id="totalHorasEdu">0.00</span></p>
-                <p>Total a pagar: <span id="totalPagarEdu">$0.00</span></p>
-            </div>
-            <div id="resumenAri">
-                <strong>Ari:</strong>
-                <p>Total de horas: <span id="totalHorasAri">0.00</span></p>
-                <p>Total a pagar: <span id="totalPagarAri">$0.00</span></p>
-            </div>
-            <button class="whatsapp-btn" onclick="enviarPorWhatsApp()">
-                Enviar resumen por WhatsApp
-            </button>
-            <button onclick="limpiarDatos()">Limpiar datos</button>
+        <h3>Tabla de Registros</h3>
+        <table id="tablaRegistros">
+            <thead>
+                <tr>
+                    <th>Persona</th>
+                    <th>Fecha</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Horas</th>
+                    <th>Pago</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
 
+        <h3>Resumen</h3>
+        <div>
+            <p><strong>Edu:</strong> Horas: <span id="totalHorasEdu">0.00</span> | Pago: <span id="totalPagarEdu">$0.00</span></p>
+            <p><strong>Ari:</strong> Horas: <span id="totalHorasAri">0.00</span> | Pago: <span id="totalPagarAri">$0.00</span></p>
         </div>
-        <div class="summary-box">
-            <h3>Registros detallados</h3>
-            
-            <h4>Edu</h4>
-            <table id="tablaEdu" border="1" cellspacing="0" cellpadding="5" width="100%">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Entrada</th>
-                        <th>Salida</th>
-                        <th>Horas</th>
-                        <th>Pago</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        
-            <h4>Ari</h4>
-            <table id="tablaAri" border="1" cellspacing="0" cellpadding="5" width="100%">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Entrada</th>
-                        <th>Salida</th>
-                        <th>Horas</th>
-                        <th>Pago</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        
+
+        <button onclick="enviarPorWhatsApp()">Enviar resumen por WhatsApp</button>
     </div>
 
     <script>
-        // Variables para almacenar horas y pagos
-        let horasEdu = 0, pagoEdu = 0;
-        let horasAri = 0, pagoAri = 0;
+        let registros = JSON.parse(localStorage.getItem('registros')) || [];
+        let resumen = JSON.parse(localStorage.getItem('resumen')) || {edu: {horas: 0, pago: 0}, ari: {horas: 0, pago: 0}};
+
+        function actualizarResumen() {
+            document.getElementById('totalHorasEdu').textContent = resumen.edu.horas.toFixed(2);
+            document.getElementById('totalPagarEdu').textContent = `$${resumen.edu.pago.toFixed(2)}`;
+            document.getElementById('totalHorasAri').textContent = resumen.ari.horas.toFixed(2);
+            document.getElementById('totalPagarAri').textContent = `$${resumen.ari.pago.toFixed(2)}`;
+        }
+
+        function actualizarTabla() {
+            const tbody = document.querySelector('#tablaRegistros tbody');
+            tbody.innerHTML = '';
+            registros.forEach(reg => {
+                const row = `<tr><td>${reg.persona}</td><td>${reg.fecha}</td><td>${reg.horaEntrada}</td><td>${reg.horaSalida}</td><td>${reg.horas}</td><td>$${reg.pago}</td></tr>`;
+                tbody.innerHTML += row;
+            });
+        }
 
         function registrarHoras() {
             const personaSeleccionada = document.getElementById('seleccionarPersona').value;
@@ -181,7 +155,6 @@
                 return;
             }
 
-            // Calcular diferencia en horas
             const fechaEntrada = new Date(fecha + "T" + horaEntrada);
             let fechaSalida = new Date(fecha + "T" + horaSalida);
 
@@ -192,37 +165,31 @@
             const totalHoras = ((fechaSalida - fechaEntrada) / (1000 * 60 * 60)).toFixed(2);
             const pagoTotal = (totalHoras * tarifa).toFixed(2);
 
-            if (personaSeleccionada === "edu") {
-                horasEdu += parseFloat(totalHoras);
-                pagoEdu += parseFloat(pagoTotal);
-            } else if (personaSeleccionada === "ari") {
-                horasAri += parseFloat(totalHoras);
-                pagoAri += parseFloat(pagoTotal);
-            }
-            agregarFilaTabla(personaSeleccionada, fecha, horaEntrada, horaSalida, totalHoras, pagoTotal);
+            registros.push({persona: personaSeleccionada, fecha, horaEntrada, horaSalida, horas: totalHoras, pago: pagoTotal});
 
+            resumen[personaSeleccionada].horas += parseFloat(totalHoras);
+            resumen[personaSeleccionada].pago += parseFloat(pagoTotal);
 
-            // Actualizar interfaz
-            document.getElementById('totalHorasEdu').textContent = horasEdu.toFixed(2);
-            document.getElementById('totalPagarEdu').textContent = `$${pagoEdu.toFixed(2)}`;
-            document.getElementById('totalHorasAri').textContent = horasAri.toFixed(2);
-            document.getElementById('totalPagarAri').textContent = `$${pagoAri.toFixed(2)}`;
+            localStorage.setItem('registros', JSON.stringify(registros));
+            localStorage.setItem('resumen', JSON.stringify(resumen));
 
-            // Limpiar campos
+            actualizarResumen();
+            actualizarTabla();
+
             document.getElementById('horaEntrada').value = '';
             document.getElementById('horaSalida').value = '';
         }
-        function agregarFilaTabla(usuario, fecha, entrada, salida, horas, pago) {
-        const tabla = document.getElementById(`tabla${usuario.charAt(0).toUpperCase() + usuario.slice(1)}`).getElementsByTagName('tbody')[0];
-        const fila = tabla.insertRow();
-        fila.insertCell(0).innerText = fecha;
-        fila.insertCell(1).innerText = entrada;
-        fila.insertCell(2).innerText = salida;
-        fila.insertCell(3).innerText = horas;
-        fila.insertCell(4).innerText = `$${parseFloat(pago).toFixed(2)}`;
 
+        function limpiarDatos() {
+            if (confirm('¿Seguro que quieres borrar todos los datos?')) {
+                registros = [];
+                resumen = {edu: {horas: 0, pago: 0}, ari: {horas: 0, pago: 0}};
+                localStorage.removeItem('registros');
+                localStorage.removeItem('resumen');
+                actualizarResumen();
+                actualizarTabla();
+            }
         }
-
 
         function enviarPorWhatsApp() {
             const personaSeleccionada = document.getElementById('seleccionarPersona').value;
@@ -230,32 +197,20 @@
 
             if (personaSeleccionada === "edu") {
                 telefono = "5619320292";
-                mensaje = `Resumen de horas trabajadas para Edu:\nTotal horas: ${horasEdu.toFixed(2)}\nTotal a pagar: $${pagoEdu.toFixed(2)}`;
+                mensaje = `Resumen de horas trabajadas para Edu:\nTotal horas: ${resumen.edu.horas.toFixed(2)}\nTotal a pagar: $${resumen.edu.pago.toFixed(2)}`;
             } else if (personaSeleccionada === "ari") {
                 telefono = "5610120010";
-                mensaje = `Resumen de horas trabajadas para Ari:\nTotal horas: ${horasAri.toFixed(2)}\nTotal a pagar: $${pagoAri.toFixed(2)}`;
+                mensaje = `Resumen de horas trabajadas para Ari:\nTotal horas: ${resumen.ari.horas.toFixed(2)}\nTotal a pagar: $${resumen.ari.pago.toFixed(2)}`;
             }
 
-            // Generar URL de WhatsApp y abrir
             const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, "_blank");
         }
-        function limpiarDatos() {
-            horasEdu = 0;
-            pagoEdu = 0;
-            horasAri = 0;
-            pagoAri = 0;
 
-            document.getElementById('totalHorasEdu').textContent = '0.00';
-            document.getElementById('totalPagarEdu').textContent = '$0.00';
-            document.getElementById('totalHorasAri').textContent = '0.00';
-            document.getElementById('totalPagarAri').textContent = '$0.00';
-            document.querySelector("#tablaEdu tbody").innerHTML = "";
-            document.querySelector("#tablaAri tbody").innerHTML = "";
-
-            
-            alert("Datos limpiados correctamente.");
-        }
+        // Al cargar
+        actualizarResumen();
+        actualizarTabla();
     </script>
 </body>
 </html>
+
